@@ -1,0 +1,25 @@
+{
+  "name": "com.tools-unity.yaga",
+  "displayName": "YaGa Plugin",
+  "version": "0.0.1",
+  "unity": "2019.2",
+  "description": "Just simple Yandex.Games SDK plugin",
+  "dependencies": {
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0"
+  },
+  "keywords": [
+    "Yandex",
+    "Games",
+    "SDK",
+    "Unity"
+  ],
+  "author": {
+    "name": "Xion-Rassl"
+  },
+  "licensesUrl": "-",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tools-Unity/YaGa.git"
+  }
+}

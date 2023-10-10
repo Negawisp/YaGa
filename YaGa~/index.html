@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>{{{ PRODUCT_NAME }}}</title>
+    <link rel="shortcut icon" href="logo.png">
+    <!-- Yandex Games SDK -->
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+    #if Ya_Metrika_Counter_ID
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript" >
+      const yaMetrikaCounterID = {{{ parseInt(Ya_Metrika_Counter_ID) }}};
+      (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+      (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+      ym(yaMetrikaCounterID, "init", {
+        clickmap:false,
+        trackLinks:true,
+        accurateTrackBounce:true
+      });
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/{{{ parseInt(Ya_Metrika_Counter_ID) }}}" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    #endif
+  </head>
+
+  <body style="padding: 0; margin: 0;">
+    <div id="unity-container" style="position: absolute; width: 100%; height: 100%; left: 0%; top: 0%;">
+      <canvas id="unity-canvas" style="position: absolute; width: 100%; height: 100%; background: {{{ BACKGROUND_FILENAME ? 'url(\'Build/' + BACKGROUND_FILENAME.replace(/'/g, '%27') + '\') center / cover' : BACKGROUND_COLOR }}}"></canvas>
+      <div id="loading-bar" style="position: absolute; left: 50%; top: 50%; width: 300px; height: 300px; transform: translate(-50%, -60%); display: block">
+        <div id="logo" style="width: 100%; height: 100%; background: url('logo.png') no-repeat center; background-size: 70% 70%;"></div>
+        <div id="progress-bar-empty" style="width: 100%; height: 20px; margin-top: 10px; background: {{{ LOADING_COLOR_EMPTY }}}; border: 2px solid {{{ LOADING_COLOR_FULL }}};">
+          <div id="progress-bar-full" style="width: 0%; height: 100%; background: {{{ LOADING_COLOR_FULL }}};"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let myGameInstance = null;
+      let player;
+      YaGames
+        .init()
+        .then(ysdk => {
+          console.log('%c❂%c Yandex SDK initialized', 'color: orange', 'color: unset');
+          window.ysdk = ysdk;
+          ysdk
+            .getPlayer({ scopes: false })
+            .then(_player => {
+              console.log('%c❂%c Yandex Player initialized', 'color: orange', 'color: unset');
+              player = _player;
+
+              const canvas = document.querySelector("#unity-canvas");
+              const loadingBar = document.querySelector("#loading-bar");
+              const progressBarFull = document.querySelector("#progress-bar-full");
+
+              const buildUrl = "Build";
+              const loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+              const config = {
+                dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+                frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+                #if USE_THREADS
+                workerUrl: buildUrl + "/{{{ WORKER_FILENAME }}}",
+                #endif
+                #if USE_WASM
+                codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+                #endif
+                #if MEMORY_FILENAME
+                memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
+                #endif
+                #if SYMBOLS_FILENAME
+                symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
+                #endif
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+                productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+                productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+              };
+              #if BACKGROUND_FILENAME
+              canvas.style.background = "url('" + buildUrl + "/{{{ BACKGROUND_FILENAME.replace(/'/g, '%27') }}}') center / cover";
+              #endif
+
+              const script = document.createElement("script");
+              script.src = loaderUrl;
+              script.onload = () => {
+                createUnityInstance(canvas, config, (progress) => {
+                  progressBarFull.style.width = 100 * progress + "%";
+                }).then((unityInstance) => {
+                  loadingBar.style.display = "none";
+                  myGameInstance = unityInstance;
+                }).catch((message) => {
+                  alert(message);
+                });
+              };
+        
+              document.body.appendChild(script);
+
+            });
+        });
+    </script>
+  </body>
+</html>

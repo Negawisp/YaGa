@@ -1,0 +1,9 @@
+{
+    "name": "Tools-Unity.YaGa.Editor",
+    "references": [
+        "Tools-Unity.YaGa"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ]
+}

@@ -1,0 +1,7 @@
+{
+    "name": "Tools-Unity.YaGa",
+    "includePlatforms": [
+        "Editor",
+        "WebGL"
+    ]
+}

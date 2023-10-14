@@ -83,6 +83,13 @@ const YaGa_Adv = {
 
 const YaGa_Player = {
 
+	YaGa_getCachedData: function () {
+		var bufferSize = lengthBytesUTF8(playerData) + 1;
+		var buffer = _malloc(bufferSize);
+		stringToUTF8(playerData, buffer, bufferSize);
+		return buffer;
+	},
+
 	YaGa_playerGetData: function () {
 		player.getData().then(dataJson => {
 			let dataString = JSON.stringify(dataJson);
@@ -206,7 +213,7 @@ const YaGa_Utils = {
 	},
 
 	YaGa_ymReachGoal : function (target) {
-		ym(yaMetrikaCounterID, 'reachGoal', target);
+		ym(yaMetrikaCounterID, 'reachGoal', UTF8ToString(target));
 	}
 
 };

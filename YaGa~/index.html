@@ -41,64 +41,65 @@
     <script>
       let myGameInstance = null;
       let player;
-      YaGames
-        .init()
-        .then(ysdk => {
-          console.log('%c❂%c Yandex SDK initialized', 'color: orange', 'color: unset');
-          window.ysdk = ysdk;
-          ysdk
-            .getPlayer({ scopes: false })
-            .then(_player => {
-              console.log('%c❂%c Yandex Player initialized', 'color: orange', 'color: unset');
-              player = _player;
+      let playerData;
+      YaGames.init().then(ysdk => {
+        console.log('%c❂%c Yandex SDK initialized', 'color: orange', 'color: unset');
+        window.ysdk = ysdk;
+        ysdk.getPlayer({ scopes: false }).then(_player => {
+          console.log('%c❂%c Yandex Player initialized', 'color: orange', 'color: unset');
+          player = _player;
+          player.getData().then(dataJson => {
+            console.log('%c❂%c Player Data received', 'color: orange', 'color: unset');
+            playerData = JSON.stringify(dataJson);
 
-              const canvas = document.querySelector("#unity-canvas");
-              const loadingBar = document.querySelector("#loading-bar");
-              const progressBarFull = document.querySelector("#progress-bar-full");
+            const canvas = document.querySelector("#unity-canvas");
+            const loadingBar = document.querySelector("#loading-bar");
+            const progressBarFull = document.querySelector("#progress-bar-full");
 
-              const buildUrl = "Build";
-              const loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
-              const config = {
-                dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
-                frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
-                #if USE_THREADS
-                workerUrl: buildUrl + "/{{{ WORKER_FILENAME }}}",
-                #endif
-                #if USE_WASM
-                codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
-                #endif
-                #if MEMORY_FILENAME
-                memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
-                #endif
-                #if SYMBOLS_FILENAME
-                symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
-                #endif
-                streamingAssetsUrl: "StreamingAssets",
-                companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
-                productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
-                productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
-              };
-              #if BACKGROUND_FILENAME
-              canvas.style.background = "url('" + buildUrl + "/{{{ BACKGROUND_FILENAME.replace(/'/g, '%27') }}}') center / cover";
+            const buildUrl = "Build";
+            const loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+            const config = {
+              dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+              frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+              #if USE_THREADS
+              workerUrl: buildUrl + "/{{{ WORKER_FILENAME }}}",
               #endif
+              #if USE_WASM
+              codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+              #endif
+              #if MEMORY_FILENAME
+              memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
+              #endif
+              #if SYMBOLS_FILENAME
+              symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
+              #endif
+              streamingAssetsUrl: "StreamingAssets",
+              companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+              productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+              productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+            };
+            #if BACKGROUND_FILENAME
+            canvas.style.background = "url('" + buildUrl + "/{{{ BACKGROUND_FILENAME.replace(/'/g, '%27') }}}') center / cover";
+            #endif
 
-              const script = document.createElement("script");
-              script.src = loaderUrl;
-              script.onload = () => {
-                createUnityInstance(canvas, config, (progress) => {
-                  progressBarFull.style.width = 100 * progress + "%";
-                }).then((unityInstance) => {
-                  loadingBar.style.display = "none";
-                  myGameInstance = unityInstance;
-                }).catch((message) => {
-                  alert(message);
-                });
-              };
-        
-              document.body.appendChild(script);
+            const script = document.createElement("script");
+            script.src = loaderUrl;
+            script.onload = () => {
+              createUnityInstance(canvas, config, (progress) => {
+                progressBarFull.style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                loadingBar.style.display = "none";
+                myGameInstance = unityInstance;
+              }).catch((message) => {
+                alert(message);
+              });
+            };
 
-            });
+            document.body.appendChild(script);
+
+          });
         });
+      });
     </script>
   </body>
 </html>

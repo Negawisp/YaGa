@@ -21,7 +21,10 @@ public partial class YaGa
 
     public static class Adv
     {
-        public static bool IsAdNow { get; private set; }
+        private static bool _isFullAdNow;
+        private static bool _isRewardedAdNow;
+
+        public static bool IsAdNow => _isFullAdNow || _isRewardedAdNow;
 
         internal static event Action<bool> AdStatusChanged;
 
@@ -38,6 +41,8 @@ public partial class YaGa
         public static void ShowFullscreenAdv(Action onOpen = null, Action<bool> onClose = null, Action onError = null,
             Action onOffline = null)
         {
+            if (IsAdNow) return;
+
 #if UNITY_EDITOR
             onOpen?.Invoke();
             onClose?.Invoke(true);
@@ -54,13 +59,13 @@ public partial class YaGa
 
         internal static void Full_OnOpen()
         {
-            AdStatusChanged?.Invoke(IsAdNow = true);
+            AdStatusChanged?.Invoke(_isFullAdNow = true);
             _full_onOpen?.Invoke();
         }
 
         internal static void Full_OnClose(bool wasShown)
         {
-            AdStatusChanged?.Invoke(IsAdNow = false);
+            AdStatusChanged?.Invoke(_isFullAdNow = false);
             _full_onClose?.Invoke(wasShown);
         }
 
@@ -89,6 +94,8 @@ public partial class YaGa
         public static void ShowRewardedVideo(Action onOpen = null, Action onRewarded = null, Action onClose = null,
             Action onError = null)
         {
+            if (IsAdNow) return;
+
 #if UNITY_EDITOR || !UNITY_WEBGL
             onOpen?.Invoke();
             onRewarded?.Invoke();
@@ -105,7 +112,7 @@ public partial class YaGa
 
         internal static void Reward_OnOpen()
         {
-            AdStatusChanged?.Invoke(IsAdNow = true);
+            AdStatusChanged?.Invoke(_isRewardedAdNow = true);
             _reward_onOpen?.Invoke();
         }
 
@@ -116,7 +123,7 @@ public partial class YaGa
 
         internal static void Reward_OnClose()
         {
-            AdStatusChanged?.Invoke(IsAdNow = false);
+            AdStatusChanged?.Invoke(_isRewardedAdNow = false);
             _reward_onClose?.Invoke();
         }
 

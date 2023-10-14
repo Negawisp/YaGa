@@ -32,6 +32,9 @@ public partial class YaGa
     public static class Player
     {
         [DllImport("__Internal")]
+        private static extern string YaGa_getCachedData();
+
+        [DllImport("__Internal")]
         private static extern void YaGa_playerGetData();
 
         [DllImport("__Internal")]
@@ -53,6 +56,17 @@ public partial class YaGa
         internal static void OnGetData(string data)
         {
             _onGetData?.Invoke(data);
+        }
+
+        public static T CachedData<T>()
+        {
+#if UNITY_EDITOR || !UNITY_WEBGL
+            var d = PlayerPrefs.GetString(DataKey, default);
+            Console.Log($"Cached data!\n{JsonUtility.ToJson(JsonUtility.FromJson<T>(d), true)}\n");
+            return JsonUtility.FromJson<T>(d);
+#else
+            return JsonUtility.FromJson<T>(YaGa_getCachedData());
+#endif
         }
 
         public static void GetData<T>(Action<T> onGetData)

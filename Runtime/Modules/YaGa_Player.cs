@@ -46,6 +46,16 @@ public partial class YaGa
         [DllImport("__Internal")]
         private static extern void YaGa_playerSetStats(string data);
 
+        public enum AvatarSize
+        {
+            // ReSharper disable InconsistentNaming
+            none,
+            small,
+            medium,
+            large
+            // ReSharper restore InconsistentNaming
+        }
+
         #region DATA
 
 #if UNITY_EDITOR

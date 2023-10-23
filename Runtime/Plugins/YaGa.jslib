@@ -1,41 +1,3 @@
-mergeInto(LibraryManager.library, {
-
-	/*GetLang : function (){
-		var lang = ysdk.environment.i18n.lang;
-		var bufferSize = lengthBytesUTF8(lang) + 1;
-		var buffer = _malloc(bufferSize);
-		stringToUTF8(lang, buffer, bufferSize);
-		return buffer;
-	},
-	GetTld : function (){
-		var tld = ysdk.environment.i18n.tld;
-		var bufferSize = lengthBytesUTF8(tld) + 1;
-		var buffer = _malloc(bufferSize);
-		stringToUTF8(tld, buffer, bufferSize);
-		return buffer;
-	},*/
-
-	/*SetScoreInLeaderboard: function(leaderboardName, score, extraData){
-		var lbName = UTF8ToString(leaderboardName);
-		var exData = UTF8ToString(extraData);
-		ysdk.getLeaderboards().then(lb => {
-			lb.setLeaderboardScore(lbName, score, exData);
-		});
-	},
-	GetScoreFromLeaderboard: function(leaderboardName){
-		var lbName = UTF8ToString(leaderboardName);
-		ysdk.getLeaderboards().then(lb =>{
-			lb.getLeaderboardPlayerEntry(lbName).then(res => {
-				myGameInstance.SendMessage('YaGa', 'OnGetLeaderboardScore', res.score);
-			}).catch(err => {
-				myGameInstance.SendMessage('YaGa', 'OnGetLeaderboardScoreFailed');
-			})
-		}).catch(err => {
-			myGameInstance.SendMessage('YaGa', 'OnGetLeaderboardScoreFailed');
-		});
-	},*/
-});
-
 const YaGa_Adv = {
 
 	YaGa_showFullscreenAdv: function () {
@@ -93,6 +55,7 @@ const YaGa_Player = {
 	YaGa_playerGetData: function () {
 		player.getData().then(dataJson => {
 			let dataString = JSON.stringify(dataJson);
+			playerData = dataString;
 			myGameInstance.SendMessage('YaGa', 'OnGetPlayerData', dataString);
 		});
 	},
@@ -100,7 +63,9 @@ const YaGa_Player = {
 	YaGa_playerSetData: function (dataObj) {
 		let dataString = UTF8ToString(dataObj);
 		let dataJson = JSON.parse(dataString);
-		player.setData(dataJson);
+		player.setData(dataJson).then(() => {
+			playerData = dataString;
+		});
 	},
 
 	YaGa_playerGetStats: function () {
@@ -114,6 +79,56 @@ const YaGa_Player = {
 		let dataString = UTF8ToString(dataObj);
 		let dataJson = JSON.parse(dataString);
 		player.setStats(dataJson);
+	}
+
+};
+
+const YaGa_Leaderboard = {
+
+	YaGa_getLeaderboardDescription: function(leaderboardName) {
+		var lbName = UTF8ToString(leaderboardName);
+		ysdk.getLeaderboards().then(lb => {
+			lb.getLeaderboardDescription(lbName).then(res => {
+				result = {
+					// "appID": res.appID,
+					"isDefault": res.default,
+					"isInvertSortOrder": res.description.invert_sort_order,
+					"decimalOffset": res.description.score_format.options.decimal_offset,
+					"type": (res.description.score_format.type === "numeric" ? 0 : res.description.score_format.type === "time" ? 1 : -1),
+					"name": res.name,
+					"title": res.title
+				}
+				myGameInstance.SendMessage('YaGa', 'OnGetDescription', JSON.stringify(result));
+			});
+		});
+	},
+
+	YaGa_getLeaderboardPlayerEntry: function(leaderboardName, avatarSize) {
+		var lbName = UTF8ToString(leaderboardName);
+		ysdk.getLeaderboards().then(lb => {
+			lb.getLeaderboardPlayerEntry(lbName).then(res => {
+				res.player = {
+					"publicName": res.player.publicName,
+					"uniqueID": res.player.uniqueID,
+					"avatarURL": (avatarSize !== "none" && res.player.scopePermissions.avatar === "allow")
+						? res.player.getAvatarSrc(avatarSize)
+						: ""
+				}
+				myGameInstance.SendMessage('YaGa', 'OnGetPlayerEntry', JSON.stringify(res));
+			}).catch(err => {
+				if (err.code === 'LEADERBOARD_PLAYER_NOT_PRESENT') {
+					myGameInstance.SendMessage('YaGa', 'OnPlayerNotPresentError');
+				}
+			});
+		});
+	},
+
+	YaGa_setLeaderboardScore: function(leaderboardName, score, extraData) {
+		var lbName = UTF8ToString(leaderboardName);
+		var exData = UTF8ToString(extraData);
+		ysdk.getLeaderboards().then(lb => {
+			lb.setLeaderboardScore(lbName, score, exData);
+		});
 	}
 
 };
@@ -230,6 +245,7 @@ const YaGa_Utils = {
 
 mergeInto(LibraryManager.library, YaGa_Adv);
 mergeInto(LibraryManager.library, YaGa_Player);
+mergeInto(LibraryManager.library, YaGa_Leaderboard);
 mergeInto(LibraryManager.library, YaGa_Feedback);
 mergeInto(LibraryManager.library, YaGa_Device);
 mergeInto(LibraryManager.library, YaGa_Environment);

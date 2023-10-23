@@ -102,6 +102,35 @@ public class PlayerEntry
         public string publicName;
         public string uniqueID;
         public string avatarURL;
+
+#if PACKAGE_WEB_REQUEST_TEXTURE
+        private Texture _avatar;
+        public void GetAvatar(Action<Texture> onGet)
+        {
+            if (_avatar)
+            {
+                onGet?.Invoke(_avatar);
+                return;
+            }
+
+            var request = UnityEngine.Networking.UnityWebRequestTexture.GetTexture(avatarURL);
+            request.SendWebRequest().completed += _ =>
+            {
+                if (request.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                    YaGa.Console.Error(request.error);
+                else
+                {
+                    var handlerTexture = request.downloadHandler as UnityEngine.Networking.DownloadHandlerTexture;
+
+                    if (handlerTexture!.isDone)
+                    {
+                        _avatar = handlerTexture.texture;
+                        onGet?.Invoke(_avatar);
+                    }
+                }
+            };
+        }
+#endif
     }
 
     public int score;

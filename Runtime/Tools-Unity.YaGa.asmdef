@@ -3,5 +3,12 @@
     "includePlatforms": [
         "Editor",
         "WebGL"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.unitywebrequesttexture",
+            "expression": "1.0.0",
+            "define": "PACKAGE_WEB_REQUEST_TEXTURE"
+        }
     ]
 }

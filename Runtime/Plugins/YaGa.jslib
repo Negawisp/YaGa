@@ -201,7 +201,17 @@ const YaGa_Console = {
 const YaGa_Utils = {
 
 	YaGa_getAddress : function () {
-		var address = (window.location != window.parent.location) ? document.referrer : document.location.href;
+		let address;
+		const re = /.*yandex\..*\/games\/.*app\/\d+.*/;
+
+		try { address = document.referrer; } catch {}
+		if (!re.test(address)) {
+			try { address = document.location.href; } catch {}
+			if (!re.test(address)) {
+				address = `https://yandex.${ysdk.environment.i18n.tld}/games/app/${ysdk.environment.app.id}`;
+			}
+		}
+
 		var bufferSize = lengthBytesUTF8(address) + 1;
 		var buffer = _malloc(bufferSize);
 		stringToUTF8(address, buffer, bufferSize);

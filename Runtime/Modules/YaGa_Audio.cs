@@ -12,28 +12,25 @@ public partial class YaGa
 
     private static class Audio
     {
-        static Audio()
-        {
-            Adv.AdStatusChanged += _ => Set();
-        }
+        static Audio() => Adv.AdStatusChanged += Set;
 
-        private static bool _isPaused;
         private static bool _hasFocus;
-
-        internal static bool IsPaused
-        {
-            set
-            {
-                _isPaused = value;
-                Set();
-            }
-        }
+        private static bool _isPaused;
 
         internal static bool HasFocus
         {
             set
             {
                 _hasFocus = value;
+                Set();
+            }
+        }
+
+        internal static bool IsPaused
+        {
+            set
+            {
+                _isPaused = value;
                 Set();
             }
         }

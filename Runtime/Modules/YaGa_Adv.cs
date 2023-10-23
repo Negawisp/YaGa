@@ -21,62 +21,56 @@ public partial class YaGa
 
     public static class Adv
     {
-        private static bool _isFullAdNow;
-        private static bool _isRewardedAdNow;
+        private static bool IsFullAdNow => _fullCallbacks != null;
+        private static bool IsRewardedAdNow => _rewCallbacks != null;
 
-        public static bool IsAdNow => _isFullAdNow || _isRewardedAdNow;
+        public static bool IsAdNow => IsFullAdNow || IsRewardedAdNow;
 
-        internal static event Action<bool> AdStatusChanged;
+        internal static event Action AdStatusChanged;
 
         #region FULLSCREEN
 
         [DllImport("__Internal")]
         private static extern void YaGa_showFullscreenAdv();
 
-        private static Action _full_onOpen;
-        private static Action<bool> _full_onClose;
-        private static Action _full_onError;
-        private static Action _full_onOffline;
+        private static (Action onOpen, Action<bool> onClose, Action onError, Action onOffline)? _fullCallbacks;
 
         public static void ShowFullscreenAdv(Action onOpen = null, Action<bool> onClose = null, Action onError = null,
             Action onOffline = null)
         {
             if (IsAdNow) return;
 
+            _fullCallbacks = (onOpen, onClose, onError, onOffline);
 #if UNITY_EDITOR
-            onOpen?.Invoke();
-            onClose?.Invoke(true);
-            onError?.Invoke();
-            onOffline?.Invoke();
+            Full_OnOpen();
+            Full_OnClose(true);
 #elif UNITY_WEBGL
-            _full_onOpen = onOpen;
-            _full_onClose = onClose;
-            _full_onError = onError;
-            _full_onOffline = onOffline;
             YaGa_showFullscreenAdv();
 #endif
         }
 
         internal static void Full_OnOpen()
         {
-            AdStatusChanged?.Invoke(_isFullAdNow = true);
-            _full_onOpen?.Invoke();
+            AdStatusChanged?.Invoke();
+            _fullCallbacks?.onOpen?.Invoke();
         }
 
         internal static void Full_OnClose(bool wasShown)
         {
-            AdStatusChanged?.Invoke(_isFullAdNow = false);
-            _full_onClose?.Invoke(wasShown);
+            var onClose = _fullCallbacks?.onClose;
+            _fullCallbacks = null;
+            AdStatusChanged?.Invoke();
+            onClose?.Invoke(wasShown);
         }
 
         internal static void Full_OnError()
         {
-            _full_onError?.Invoke();
+            _fullCallbacks?.onError?.Invoke();
         }
 
         internal static void Full_OnOffline()
         {
-            _full_onOffline?.Invoke();
+            _fullCallbacks?.onOffline?.Invoke();
         }
 
         #endregion
@@ -86,50 +80,45 @@ public partial class YaGa
         [DllImport("__Internal")]
         private static extern void YaGa_showRewardedVideo();
 
-        private static Action _reward_onOpen;
-        private static Action _reward_onRewarded;
-        private static Action _reward_onClose;
-        private static Action _reward_onError;
+        private static (Action onOpen, Action onRewarded, Action onClose, Action onError)? _rewCallbacks;
 
         public static void ShowRewardedVideo(Action onOpen = null, Action onRewarded = null, Action onClose = null,
             Action onError = null)
         {
             if (IsAdNow) return;
 
-#if UNITY_EDITOR || !UNITY_WEBGL
-            onOpen?.Invoke();
-            onRewarded?.Invoke();
-            onClose?.Invoke();
-            onError?.Invoke();
+            _rewCallbacks = (onOpen, onRewarded, onClose, onError);
+#if UNITY_EDITOR
+            Reward_OnOpen();
+            Reward_OnRewarded();
+            Reward_OnClose();
 #else
-            _reward_onOpen = onOpen;
-            _reward_onRewarded = onRewarded;
-            _reward_onClose = onClose;
-            _reward_onError = onError;
             YaGa_showRewardedVideo();
 #endif
         }
 
         internal static void Reward_OnOpen()
         {
-            AdStatusChanged?.Invoke(_isRewardedAdNow = true);
-            _reward_onOpen?.Invoke();
+            AdStatusChanged?.Invoke();
+            _rewCallbacks?.onOpen?.Invoke();
         }
 
         internal static void Reward_OnRewarded()
         {
-            _reward_onRewarded?.Invoke();
+            _rewCallbacks?.onRewarded?.Invoke();
         }
 
         internal static void Reward_OnClose()
         {
-            AdStatusChanged?.Invoke(_isRewardedAdNow = false);
-            _reward_onClose?.Invoke();
+            var onClose = _rewCallbacks?.onClose;
+            _rewCallbacks = null;
+            AdStatusChanged?.Invoke();
+            onClose?.Invoke();
         }
 
         internal static void Reward_OnError()
         {
-            _reward_onError?.Invoke();
+            _rewCallbacks?.onError?.Invoke();
         }
 
         #endregion

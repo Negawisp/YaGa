@@ -4,7 +4,7 @@ using System.IO.Compression;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using UnityEngine.SceneManagement;
+using UnityEditor.SceneManagement;
 
 namespace YaGaPlugin.Editor
 {
@@ -29,34 +29,39 @@ public class BuildProcessing : IPreprocessBuildWithReport, IPostprocessBuildWith
 
     private void CheckForYaGaComponent()
     {
-        YaGa y = null;
-        for (var i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+        var yagaCount = 0;
+        var yagaActive = 0;
+        var currentScene = EditorSceneManager.GetActiveScene().path;
+        var allScenes = EditorBuildSettings.scenes;
+        foreach (var scene in allScenes)
         {
-            var s = SceneManager.GetSceneAt(i);
+            var s = EditorSceneManager.OpenScene(scene.path);
             var gameObjects = s.GetRootGameObjects();
             foreach (var go in gameObjects)
             {
                 var c = go.GetComponentInChildren<YaGa>(true);
                 if (c == null) continue;
-                y = c;
+                yagaCount += 1;
+                yagaActive += c.isActiveAndEnabled ? 1 : 0;
                 break;
             }
         }
+        EditorSceneManager.OpenScene(currentScene);
 
-        if (y == null)
+        if (yagaCount != allScenes.Length)
         {
             if (!EditorUtility.DisplayDialog(
                     "❂ YaGa WARNING!",
-                    "There is no YaGa component in scenes!\n\nAre you sure you want to continue?",
+                    "There is no YaGa component in some scenes!\n\nAre you sure you want to continue?",
                     "Continue",
                     "Cancel"))
                 throw new BuildFailedException("The YaGa component is missing!");
         }
         else
         {
-            if (!y.isActiveAndEnabled && !EditorUtility.DisplayDialog(
+            if (yagaActive != allScenes.Length && !EditorUtility.DisplayDialog(
                     "❂ YaGa WARNING!",
-                    "The YaGa component is not active and enabled!\n\nAre you sure you want to continue?",
+                    "The YaGa component is not active and enabled in some scenes!\n\nAre you sure you want to continue?",
                     "Continue",
                     "Cancel"))
                 throw new BuildFailedException("The YaGa component is deactivated!");

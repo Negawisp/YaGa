@@ -75,7 +75,7 @@ public partial class YaGa
             else
                 OnPlayerNotPresentError();
 #elif UNITY_WEBGL
-            YaGa_getLeaderboardPlayerEntry(lbName, avatarSize);
+            YaGa_getLeaderboardPlayerEntry(lbName, avatarSize.ToString());
 #endif
         }
 
